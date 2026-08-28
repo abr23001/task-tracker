@@ -21,5 +21,8 @@ Pixel art, purple/night palette, cats, moon, witch, nightcore aesthetic.
 7. User marks the plan "Completed?"
 8. Back to step 2's menu. Stats tab shows daily streak, time focused, tasks completed as a bar graph
 
+## Known follow-ups (deferred on purpose, revisit later)
+- Plan storage is in-memory only (a list on MainWindow) for now. Switch to file-based (JSON) persistence — serializing Plan via dataclasses.asdict/json.dump, loading on boot, handling a missing/corrupt file — when reaching step 5 (tray persistence), since that's the point saved plans need to survive an app restart.
+
 ## How I want to work
 I'm learning as I build this. Follow Mentor output style rules for feature code — hints and doc pointers only, no full implementations. Repo/environment scaffolding (git, venv, installs) can be done directly.

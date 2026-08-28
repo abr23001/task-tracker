@@ -1,4 +1,5 @@
 from PySide6 import QtWidgets, QtCore
+from .plan import Plan
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -7,6 +8,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle("Spooky Tracer")
 
         self.planLandingPage = QtWidgets.QWidget()
+
+        self.plans = []
 
         # Create a container widget to hold the pages
         self.pageContainer = QtWidgets.QWidget()
