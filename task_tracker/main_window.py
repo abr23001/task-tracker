@@ -12,6 +12,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.plans = []          # List to hold created plans
         self.selectedApps = []   # List to hold apps selected on the create page
         self.app_rows = {}  # Dict to map app names to their row widgets
+        self.selectedIconPath = "" # Path to the selected icon file
 
         # Widgets: (Menu / Stats)
         self.pageContainer = QtWidgets.QWidget()
@@ -36,6 +37,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.iconPreview = QtWidgets.QLabel()
         self.iconPreview.setFixedSize(64, 64)
         self.createPlan = QtWidgets.QComboBox()
+        self.savePlanButton = QtWidgets.QPushButton("Save")
         self.createPlan.addItem("Roblox")
         self.createPlan.addItem("Brave")
 
@@ -89,6 +91,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.createPage.layout().addWidget(self.planDescription)
         self.createPage.layout().addWidget(self.createPlan)
         self.createPage.layout().addWidget(self.appListContainer)
+        self.createPage.layout().addWidget(self.savePlanButton)
         self.createPage.layout().addStretch()
 
         # Layout: choose page
@@ -108,6 +111,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.chooseBackButton.clicked.connect(self.show_plan_landing_page)
         self.createPlan.textActivated.connect(self.add_selected_app)
         self.iconButton.clicked.connect(self.choose_icon)
+        self.savePlanButton.clicked.connect(self.save_plan)
 
     # Top-level nav handlers
     def show_menu_page(self):
@@ -156,3 +160,19 @@ class MainWindow(QtWidgets.QMainWindow):
             pixmap = QtGui.QPixmap(self.selectedIconPath)
             pixmap = pixmap.scaled(64, 64, QtCore.Qt.IgnoreAspectRatio, QtCore.Qt.SmoothTransformation)
             self.iconPreview.setPixmap(pixmap)
+
+    def save_plan(self):
+        name = self.planNameInput.text()
+        desc = self.planDescription.toPlainText()
+        icon = self.selectedIconPath
+        apps = list(self.selectedApps)
+
+        savedPlan = Plan(name=name, description=desc, icon=icon, apps=apps)
+        self.plans.append(savedPlan)
+
+        self.planNameInput.clear()
+        self.planDescription.clear()
+        self.selectedIconPath = ""
+        self.iconPreview.clear()
+        for app_name in list(self.selectedApps):
+            self.remove_selected_app(app_name)
