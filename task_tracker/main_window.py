@@ -1,5 +1,8 @@
 from PySide6 import QtWidgets, QtGui, QtCore
 from .plan import Plan
+import win32gui
+import win32process
+import psutil
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -13,6 +16,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.selectedApps = []   # List to hold apps selected on the create page
         self.app_rows = {}  # Dict to map app names to their row widgets
         self.selectedIconPath = "" # Path to the selected icon file
+        self.currentPlan = None
+        self.foregroundCheckTimer = QtCore.QTimer(self)
+
+
+        self.trayicon = QtWidgets.QSystemTrayIcon(self)
+        self.setup_tray_icon()
+
 
         # Widgets: (Menu / Stats)
         self.pageContainer = QtWidgets.QWidget()
@@ -47,8 +57,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Widgets: "choose a plan" form
         self.choosePlan = QtWidgets.QComboBox()
-        self.choosePlan.addItem("Study")
-        self.choosePlan.addItem("Gaming")
+        self.startPlanButton = QtWidgets.QPushButton("Choose")
 
         # Stacks
         self.stackedWidget = QtWidgets.QStackedWidget()
@@ -100,6 +109,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.choosePage.layout().addWidget(self.chooseBackButton)
         self.choosePage.layout().addStretch()
         self.choosePage.layout().addWidget(self.choosePlan)
+        self.choosePage.layout().addWidget(self.startPlanButton)
         self.choosePage.layout().addStretch()
 
         # Signal connections
@@ -112,23 +122,30 @@ class MainWindow(QtWidgets.QMainWindow):
         self.createPlan.textActivated.connect(self.add_selected_app)
         self.iconButton.clicked.connect(self.choose_icon)
         self.savePlanButton.clicked.connect(self.save_plan)
+        self.startPlanButton.clicked.connect(self.start_plan)
+        self.foregroundCheckTimer.timeout.connect(self.check_foreground_app)
 
     # Top-level nav handlers
     def show_menu_page(self):
         self.stackedWidget.setCurrentWidget(self.menuPage)
 
+
     def show_stats_page(self):
         self.stackedWidget.setCurrentWidget(self.statsPage)
+
 
     # Menu sub-page handlers
     def show_create_page(self):
         self.planStackedWidget.setCurrentWidget(self.createPage)
 
+
     def show_choose_page(self):
         self.planStackedWidget.setCurrentWidget(self.choosePage)
 
+
     def show_plan_landing_page(self):
         self.planStackedWidget.setCurrentWidget(self.planLandingPage)
+
 
     # App-list handlers (create page)
     def add_selected_app(self, app_name):
@@ -143,6 +160,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.appListContainer.layout().addWidget(rowWidget)
             self.app_rows[app_name] = rowWidget
 
+
     def remove_selected_app(self, app_name):
         if app_name in self.selectedApps:
             self.selectedApps.remove(app_name)
@@ -152,6 +170,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 rowWidget.setParent(None)
                 rowWidget.deleteLater()
 
+
     def choose_icon(self):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open Image",
                                                              "", "Image Files (*.png *.jpg *.bmp)")
@@ -160,6 +179,13 @@ class MainWindow(QtWidgets.QMainWindow):
             pixmap = QtGui.QPixmap(self.selectedIconPath)
             pixmap = pixmap.scaled(64, 64, QtCore.Qt.IgnoreAspectRatio, QtCore.Qt.SmoothTransformation)
             self.iconPreview.setPixmap(pixmap)
+
+
+    def start_plan(self):
+        self.currentPlan = self.choosePlan.currentData()
+        if self.currentPlan:
+            self.foregroundCheckTimer.start(2000)
+        self.hide()
 
     def save_plan(self):
         name = self.planNameInput.text()
@@ -176,3 +202,45 @@ class MainWindow(QtWidgets.QMainWindow):
         self.iconPreview.clear()
         for app_name in list(self.selectedApps):
             self.remove_selected_app(app_name)
+
+        self.show_plan_landing_page()
+        self.refresh_choose_plan_dropdown()
+
+
+
+    def refresh_choose_plan_dropdown(self):
+        self.choosePlan.clear()
+        for plan in self.plans:
+            self.choosePlan.addItem(plan.name, userData=plan)
+
+
+    def setup_tray_icon(self):
+        self.trayicon.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_ComputerIcon))
+        self.trayicon.show()
+
+        trayMenu = QtWidgets.QMenu()
+        quitAction = QtGui.QAction("Quit", self)
+        trayMenu.addAction(quitAction)
+        self.trayicon.setContextMenu(trayMenu)
+        quitAction.triggered.connect(QtWidgets.QApplication.instance().quit)
+
+        self.trayicon.activated.connect(self.on_tray_activated)
+
+    def on_tray_activated(self, reason):
+        if reason == QtWidgets.QSystemTrayIcon.ActivationReason.Trigger:
+            self.show()
+
+
+    def get_foreground_app_name(self):
+        hwnd = win32gui.GetForegroundWindow()
+        _, pid = win32process.GetWindowThreadProcessId(hwnd)
+
+        try:
+            return psutil.Process(pid).name()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            return None
+
+    def check_foreground_app(self):
+        foreground_app = self.get_foreground_app_name()
+        if foreground_app:
+            print(foreground_app)

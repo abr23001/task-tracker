@@ -7,6 +7,7 @@ A Windows desktop app that asks what task I'm working on at boot, and shows a po
 - Python 3.11+
 - PySide6 for UI — hand-drawn pixel art assets from LibreSprite, no default Qt widget styling
 - pywin32 for Windows integration (startup registration, foreground window detection)
+- psutil for resolving a foreground window's process to an app name
 
 ## Visual theme
 Pixel art, purple/night palette, cats, moon, witch, nightcore aesthetic.
@@ -22,7 +23,8 @@ Pixel art, purple/night palette, cats, moon, witch, nightcore aesthetic.
 8. Back to step 2's menu. Stats tab shows daily streak, time focused, tasks completed as a bar graph
 
 ## Known follow-ups (deferred on purpose, revisit later)
-- Plan storage is in-memory only (a list on MainWindow) for now. Switch to file-based (JSON) persistence — serializing Plan via dataclasses.asdict/json.dump, loading on boot, handling a missing/corrupt file — when reaching step 5 (tray persistence), since that's the point saved plans need to survive an app restart.
+- Plan storage is still in-memory only (a list on MainWindow), even though step 5 (tray persistence) is now built. Switch to file-based (JSON) persistence — serializing Plan via dataclasses.asdict/json.dump, loading on boot, handling a missing/corrupt file — since plans currently don't survive an app restart despite the app now living in the tray across a session.
+- Step 1 (boot at startup) was skipped — steps 2-5 got built first. Revisit via pywin32 registry registration (e.g. the Run key) once the step 6 popup feature is in a good place; it's self-contained and doesn't block anything else.
 
 ## How I want to work
 I'm learning as I build this. Follow Mentor output style rules for feature code — hints and doc pointers only, no full implementations. Repo/environment scaffolding (git, venv, installs) can be done directly.

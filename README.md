@@ -1,26 +1,45 @@
-# task-tracker
+# Focus Tracker
 
-Installation
-1. Creating and activating an environment
-You can do this by running the following on a terminal:
+A Windows desktop app that asks what task you're working on at boot, and shows a popup if you get sidetracked into an app not part of that task.
 
-Create environment (Your Python executable might be called python3):
+See [CLAUDE.md](CLAUDE.md) for the full feature roadmap and project notes.
 
-python -m venv env
-Activate the environment on Linux/macOS:
+## Stack
 
-source env/bin/activate
-or in Windows:
+- Python 3.11+
+- [PySide6](https://doc.qt.io/qtforpython-6/) for the UI (hand-drawn pixel-art assets, no default Qt widget styling)
+- [pywin32](https://github.com/mhammond/pywin32) for Windows integration (startup registration, foreground window detection)
+- [psutil](https://psutil.readthedocs.io/) for resolving a foreground window to its app name
 
-env\Scripts\activate.bat
+## Setup
 
-2. Installing PySide6
-Note
+```
+git clone https://github.com/abr23001/task-tracker.git
+cd task-tracker
+python -m venv .venv
+```
 
-For a commercial installation, refer to Commercial Use.
+Activate the environment:
 
-Now you are ready to install the Qt for Python packages using pip. From the terminal, run the following command:
+```
+.venv\Scripts\activate.bat   # Windows (cmd)
+.venv\Scripts\Activate.ps1   # Windows (PowerShell)
+```
 
-For the latest version:
+Install dependencies:
 
-pip install pyside6
+```
+pip install -r requirements.txt
+```
+
+## Running
+
+```
+python -m scripts.main
+```
+
+(Run from the repo root — the app is structured as a package, `task_tracker/`, with `scripts/main.py` as the entry point, so it needs to be launched as a module rather than as a standalone script.)
+
+## Status
+
+Under active development. Currently working: main window navigation, creating and choosing plans, and closing to the system tray. See CLAUDE.md's roadmap for what's built versus still pending.
